@@ -1,30 +1,53 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:flutter_application_1/main.dart';
+import 'package:flutter_application_1/models/earthquake_model.dart';
+import 'package:flutter_application_1/providers/app_data_provider.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('EarthquakeModel parses a USGS GeoJSON response', () {
+    final model = EarthquakeModel.fromJson({
+      'type': 'FeatureCollection',
+      'metadata': {'count': 1},
+      'features': [
+        {
+          'type': 'Feature',
+          'id': 'us123',
+          'properties': {
+            'mag': 5.4,
+            'place': '10 km N of Somewhere',
+            'time': 1700000000000,
+            'alert': 'green',
+          },
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [12.5, 41.9, 10],
+          },
+        },
+      ],
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    final quake = model.features!.single;
+    expect(quake.properties!.mag, 5.4);
+    expect(quake.properties!.place, '10 km N of Somewhere');
+    expect(quake.geometry!.coordinates, [12.5, 41.9, 10]);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('Home page shows an error with retry when loading fails',
+      (WidgetTester tester) async {
+    // In widget tests every HTTP request returns status 400.
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (ctx) => AppDataProvider(),
+        child: const MyApp(),
+      ),
+    );
+    await tester.runAsync(() => Future.delayed(const Duration(seconds: 1)));
+    await tester.pump(const Duration(seconds: 1));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Earthquake App'), findsOneWidget);
+    expect(find.text('Server error: 400'), findsOneWidget);
+    expect(find.text('Try again'), findsOneWidget);
   });
 }
