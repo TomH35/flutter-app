@@ -1,30 +1,47 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
-import 'package:flutter_application_1/main.dart';
+import 'package:todo_app/main.dart';
+import 'package:todo_app/todo_provider.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Add, complete and delete a todo', (WidgetTester tester) async {
+    final provider = TodoProvider();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(value: provider, child: const MyApp()),
+    );
 
-    // Tap the '+' icon and trigger a frame.
+    expect(find.text('Nothing to do!'), findsOneWidget);
+
     await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('SAVE'));
+    await tester.pumpAndSettle();
+    expect(find.text('Input field must not be empty'), findsOneWidget);
+    await tester.tap(find.text('CLOSE'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Buy milk');
+    await tester.tap(find.byType(Radio<TodoPriority>).last);
+    await tester.pump();
+    expect(provider.priority, TodoPriority.high);
+
+    await tester.tap(find.text('SAVE'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Buy milk'), findsOneWidget);
+    expect(find.text('Priority: High'), findsOneWidget);
+
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+    expect(provider.todos.single.completed, isTrue);
+
+    await tester.tap(find.byTooltip('Delete'));
+    await tester.pump();
+    expect(provider.todos, isEmpty);
+    expect(find.text('Nothing to do!'), findsOneWidget);
   });
 }
