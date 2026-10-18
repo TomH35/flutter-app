@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'styled_text.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -9,10 +11,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       home: Scaffold(
-        body: Center(
-          child: Text('Hello World', style: TextStyle(fontSize: 24)),
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.deepPurple, Colors.pinkAccent],
+            ),
+          ),
+          child: const Center(
+            child: StyledText('Hello World'),
+          ),
         ),
       ),
     );
