@@ -1,0 +1,9 @@
+# Uploaded photos are served as static files only.
+<FilesMatch "\.(php|phtml|phar)$">
+    Require all denied
+</FilesMatch>
+
+# Needed for Flutter web to load images from a different origin.
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>

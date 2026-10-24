@@ -1,0 +1,6 @@
+# The backend lives inside the web root, so hide everything that is not a public endpoint.
+<FilesMatch "^(\.env.*|composer\.(json|lock))$">
+    Require all denied
+</FilesMatch>
+
+RedirectMatch 404 ^/.*/backend/(libs|vendor|migrations)(/.*)?$
